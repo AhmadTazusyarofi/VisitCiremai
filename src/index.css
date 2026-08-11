@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@import "@fontsource/kadwa/latin-400.css";
+@import "@fontsource/kadwa/latin-700.css";
+
+@theme {
+  --color-primary: #063B00;
+  --color-primary-dark: #042900;
+  --color-bg: #F7F8F5;
+  --color-surface: #FFFFFF;
+  --color-ink: #17251D;
+  --color-ink-2: #66736B;
+  --color-line: #E4E9E5;
+  --font-sans: "Kadwa", Georgia, serif;
+}
+
+html { scroll-behavior: smooth; }
+body { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); }
+
+[id] { scroll-margin-top: 5rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}
+
+@layer components {
+  .glass {
+    background: color-mix(in srgb, white 14%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    backdrop-filter: blur(14px) saturate(1.4);
+    border: 1px solid color-mix(in srgb, white 45%, transparent);
+    box-shadow: 0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  /* Chromium: layer SVG refraction on top of frost where url() backdrop filters are supported */
+  @supports (backdrop-filter: url(#lg-glass)) {
+    .glass { backdrop-filter: blur(10px) saturate(1.4) url(#lg-glass); }
+  }
+}
