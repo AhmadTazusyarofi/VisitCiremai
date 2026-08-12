@@ -1,27 +1,32 @@
-import type { JSX } from 'react';
-import { MapPin, Phone, Mail } from 'lucide-react';
-import { Container } from './Container';
+import type { JSX } from "react";
+import { useState } from "react";
+import { Mail, MapPin, Phone } from "lucide-react";
+import { Container } from "./Container";
+import { Modal } from "../ui/Modal";
+import { TestimonialForm } from "../sections/TestimonialForm";
 
 const layanan = [
-  { label: 'Pendakian', href: '#paket' },
-  { label: 'Akomodasi', href: '#akomodasi' },
-  { label: 'Transportasi', href: '#transportasi' },
-  { label: 'Sewa Alat', href: '#sewa-alat' },
+  { label: "Pendakian", href: "#paket" },
+  { label: "Akomodasi", href: "#akomodasi" },
+  { label: "Transportasi", href: "#transportasi" },
+  { label: "Sewa Alat", href: "#sewa-alat" },
 ];
 
 const socials = [
-  { label: 'Instagram', href: '#', icon: '/img/instagram.png' },
-  { label: 'Facebook', href: '#', icon: '/img/communication.png' },
-  { label: 'YouTube', href: '#', icon: '/img/youtube.png' },
+  { label: "Instagram", href: "#", icon: "/img/instagram.png" },
+  { label: "Facebook", href: "#", icon: "/img/communication.png" },
+  { label: "YouTube", href: "#", icon: "/img/youtube.png" },
 ];
 
 const linkClass =
-  'inline-flex min-h-9 items-center text-sm text-white/80 transition-colors hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded';
+  "inline-flex min-h-9 items-center text-sm text-white/80 transition-colors hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded";
 
 const contactLinkClass =
-  'flex items-center gap-2 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded';
+  "flex items-center gap-2 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded";
 
 export function Footer(): JSX.Element {
+  const [testiOpen, setTestiOpen] = useState(false);
+
   return (
     <footer id="kontak" className="relative overflow-hidden text-white/90">
       {/* No solid background — the same fixed hero image shows through */}
@@ -42,8 +47,8 @@ export function Footer(): JSX.Element {
             </h2>
             <p className="mt-4 max-w-sm text-sm text-white/80">
               VisitCiremai.com, partner wisata Gunung Ciremai yang menyediakan
-              paket tour, penginapan, transportasi, dan rental alat outdoor untuk
-              pengalaman liburan yang tak terlupakan.
+              paket tour, penginapan, transportasi, dan rental alat outdoor
+              untuk pengalaman liburan yang tak terlupakan.
             </p>
             <ul className="mt-6 flex items-center gap-3">
               {socials.map((s) => (
@@ -83,7 +88,10 @@ export function Footer(): JSX.Element {
             </h3>
             <ul className="flex flex-col gap-3 text-sm text-white/80">
               <li className="flex items-start gap-2">
-                <MapPin aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
+                <MapPin
+                  aria-hidden="true"
+                  className="mt-0.5 h-4 w-4 shrink-0"
+                />
                 <span>
                   Kaki Gunung Ciremai,
                   <br />
@@ -97,10 +105,22 @@ export function Footer(): JSX.Element {
                 </a>
               </li>
               <li>
-                <a href="mailto:jessa@visitciremai.com" className={contactLinkClass}>
+                <a
+                  href="mailto:jessa@visitciremai.com"
+                  className={contactLinkClass}
+                >
                   <Mail aria-hidden="true" className="h-4 w-4 shrink-0" />
                   <span>jessa@visitciremai.com</span>
                 </a>
+              </li>
+              <li className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setTestiOpen(true)}
+                  className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-black transition-colors hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                >
+                  Bagikan Pengalamanmu
+                </button>
               </li>
             </ul>
           </div>
@@ -112,6 +132,14 @@ export function Footer(): JSX.Element {
           </p>
         </div>
       </Container>
+
+      <Modal
+        open={testiOpen}
+        onClose={() => setTestiOpen(false)}
+        title="Bagikan Testimoni"
+      >
+        <TestimonialForm onClose={() => setTestiOpen(false)} />
+      </Modal>
     </footer>
   );
 }
