@@ -5,10 +5,12 @@ import { Footer } from '../components/layout/Footer';
 import { Container } from '../components/layout/Container';
 import { HeroSection } from '../components/hero/HeroSection';
 import { CategorySection } from '../components/package/CategorySection';
+import { ErrorState } from '../components/ui/ErrorState';
+import { PackageGridSkeleton } from '../components/ui/PackageCardSkeleton';
 import { WhyVisitCiremai } from '../components/sections/WhyVisitCiremai';
 import { Testimonials } from '../components/sections/Testimonials';
 import { CTASection } from '../components/sections/CTASection';
-import { packages } from '../data/packages';
+import { usePackages } from '../hooks/usePackages';
 import type { Category } from '../types/package';
 
 const CATEGORY_ORDER: { title: Category; id: string }[] = [
@@ -20,6 +22,8 @@ const CATEGORY_ORDER: { title: Category; id: string }[] = [
 ];
 
 export function HomePage(): JSX.Element {
+  const { data: packages, loading, error, reload } = usePackages();
+
   return (
     <>
       <Seo
@@ -30,7 +34,7 @@ export function HomePage(): JSX.Element {
       <main id="main-content" tabIndex={-1} className="outline-none">
         <HeroSection />
 
-        <section id="tentang" className="py-12 sm:py-16">
+        <section id="layanan" className="py-12 sm:py-16">
           <Container className="text-center">
             <h2 className="text-3xl font-bold text-ink">Paket dan Layanan Kami</h2>
             <p className="mx-auto mt-4 max-w-2xl text-base text-ink-2">
@@ -41,15 +45,28 @@ export function HomePage(): JSX.Element {
         </section>
 
         <div className="space-y-16 pb-16 sm:space-y-20 sm:pb-20">
-          {CATEGORY_ORDER.map((c) => (
-            <Container key={c.id}>
-              <CategorySection
-                id={c.id}
-                title={c.title}
-                items={packages.filter((p) => p.category === c.title)}
-              />
+          {loading && (
+            <Container>
+              <PackageGridSkeleton />
             </Container>
-          ))}
+          )}
+
+          {error && (
+            <Container>
+              <ErrorState message={error} onRetry={reload} />
+            </Container>
+          )}
+
+          {packages &&
+            CATEGORY_ORDER.map((c) => {
+              const items = packages.filter((p) => p.category === c.title);
+              if (items.length === 0) return null;
+              return (
+                <Container key={c.id}>
+                  <CategorySection id={c.id} title={c.title} items={items} />
+                </Container>
+              );
+            })}
         </div>
 
         <WhyVisitCiremai />

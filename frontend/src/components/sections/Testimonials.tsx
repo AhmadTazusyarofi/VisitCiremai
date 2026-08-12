@@ -4,8 +4,9 @@ import { TestimonialCarousel } from './TestimonialCarousel';
 import type { Testimonial } from '../../context/TestimonialsContext';
 import { useTestimonials } from '../../context/TestimonialsContext';
 
-// NOTE: data testimoni di bawah adalah CONTOH/placeholder. Testimoni dari
-// pengguna dikelola lewat TestimonialsContext (disimpan di localStorage).
+// NOTE: data testimoni di bawah adalah CONTOH/placeholder yang tampil sebagai
+// pelengkap. Testimoni asli datang dari API (tabel `testimonials`) dan hanya
+// muncul setelah disetujui admin — lihat TestimonialsContext.
 const MOCK_TESTIMONIALS: Testimonial[] = [
   {
     quote:

@@ -8,7 +8,9 @@ import { Footer } from '../components/layout/Footer';
 import { Container } from '../components/layout/Container';
 import { PackageGrid } from '../components/package/PackageGrid';
 import { Button } from '../components/ui/Button';
-import { packages } from '../data/packages';
+import { ErrorState } from '../components/ui/ErrorState';
+import { PackageGridSkeleton } from '../components/ui/PackageCardSkeleton';
+import { usePackages } from '../hooks/usePackages';
 import type { Category } from '../types/package';
 
 const CATEGORIES: Category[] = [
@@ -32,6 +34,9 @@ export function SearchResultsPage(): JSX.Element {
   const [queryInput, setQueryInput] = useState(q);
   const [catInput, setCatInput] = useState(kategori);
 
+  // Pencarian dijalankan di server, jadi hanya hasil yang cocok yang diunduh.
+  const { data: results, loading, error, reload } = usePackages({ q, kategori });
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -41,13 +46,6 @@ export function SearchResultsPage(): JSX.Element {
     setQueryInput(q);
     setCatInput(kategori);
   }, [q, kategori]);
-
-  const results = packages.filter((p) => {
-    const haystack = `${p.title} ${p.description} ${p.location ?? ''} ${p.category}`.toLowerCase();
-    const matchQuery = !q || haystack.includes(q.toLowerCase());
-    const matchCategory = !kategori || p.category === kategori;
-    return matchQuery && matchCategory;
-  });
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -72,7 +70,7 @@ export function SearchResultsPage(): JSX.Element {
         <Container className="py-8 sm:py-12">
           <h1 className="text-2xl font-bold text-ink sm:text-3xl">Hasil Pencarian</h1>
           <p className="mt-2 text-ink-2">
-            {results.length} paket ditemukan
+            {loading ? 'Mencari paket' : `${results?.length ?? 0} paket ditemukan`}
             {q && (
               <>
                 {' '}
@@ -85,7 +83,7 @@ export function SearchResultsPage(): JSX.Element {
                 di kategori <span className="text-ink">{kategori}</span>
               </>
             )}
-            .
+            {loading ? '…' : '.'}
           </p>
 
           {/* Refine search */}
@@ -135,7 +133,11 @@ export function SearchResultsPage(): JSX.Element {
 
           {/* Results */}
           <div className="mt-8">
-            {results.length > 0 ? (
+            {loading ? (
+              <PackageGridSkeleton />
+            ) : error ? (
+              <ErrorState message={error} onRetry={reload} />
+            ) : results && results.length > 0 ? (
               <PackageGrid items={results} />
             ) : (
               <div className="rounded-2xl border border-line bg-surface p-10 text-center">

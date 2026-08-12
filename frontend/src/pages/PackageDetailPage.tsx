@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
+  CalendarDays,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -17,32 +18,63 @@ import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { Container } from '../components/layout/Container';
 import { Button } from '../components/ui/Button';
+import { PageLoader } from '../components/ui/PageLoader';
 import { Seo } from '../components/Seo';
 import { PackageGallery } from '../components/package/PackageGallery';
-import { PackageItinerary } from '../components/package/PackageItinerary';
-import { packages } from '../data/packages';
-import { formatRupiah } from '../lib/format';
+import { usePackage } from '../hooks/usePackages';
+import { ApiError, apiPost } from '../lib/api';
+import { formatRupiah, formatTanggal, todayISO } from '../lib/format';
 import { waLink } from '../lib/whatsapp';
 
 const inputClass =
   'w-full rounded-lg border border-line bg-surface px-4 py-2.5 text-ink placeholder:text-ink-2/60 outline-none transition-colors focus:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
 
+const inputErrorClass = 'border-red-600 focus:border-red-600';
+
+/** Pesan error di bawah sebuah field. */
+function FieldError({ id, message }: { id: string; message?: string }): JSX.Element | null {
+  if (!message) return null;
+  return (
+    <p id={id} className="mt-1.5 text-sm text-red-700">
+      {message}
+    </p>
+  );
+}
+
 export function PackageDetailPage(): JSX.Element {
   const { id } = useParams();
   const navigate = useNavigate();
-  const pkg = packages.find((p) => p.id === id);
+  const { data: pkg, loading, error, reload } = usePackage(id);
 
   const [nama, setNama] = useState('');
   const [hp, setHp] = useState('');
   const [jumlah, setJumlah] = useState('1');
+  const [tanggal, setTanggal] = useState('');
   const [catatan, setCatatan] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const minDate = todayISO();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
 
+  if (loading) {
+    return (
+      <>
+        <Seo title="Memuat paket… — VisitCiremai" noindex />
+        <Navbar alwaysSolid />
+        <main id="main-content" tabIndex={-1} className="pt-16 outline-none">
+          <PageLoader />
+        </main>
+      </>
+    );
+  }
+
   if (!pkg) {
+    const isNotFound = !error || error.toLowerCase().includes('tidak ditemukan');
     return (
       <>
         <Seo title="Paket tidak ditemukan — VisitCiremai" noindex />
@@ -53,15 +85,24 @@ export function PackageDetailPage(): JSX.Element {
           className="min-h-screen bg-bg pt-16 outline-none"
         >
           <Container className="py-24 text-center">
-            <h1 className="text-2xl font-bold text-ink">Paket tidak ditemukan</h1>
+            <h1 className="text-2xl font-bold text-ink">
+              {isNotFound ? 'Paket tidak ditemukan' : 'Gagal memuat paket'}
+            </h1>
             <p className="mx-auto mt-3 max-w-md text-ink-2">
-              Maaf, paket yang Anda cari tidak tersedia atau tautannya sudah berubah.
+              {isNotFound
+                ? 'Maaf, paket yang Anda cari tidak tersedia atau tautannya sudah berubah.'
+                : error}
             </p>
-            <div className="mt-6">
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Button onClick={() => navigate('/#paket')}>
                 <ArrowLeft aria-hidden="true" className="h-4 w-4" />
                 Kembali ke Beranda
               </Button>
+              {!isNotFound && (
+                <Button variant="ghost" onClick={reload}>
+                  Coba lagi
+                </Button>
+              )}
             </div>
           </Container>
         </main>
@@ -80,6 +121,7 @@ export function PackageDetailPage(): JSX.Element {
     `Nama: ${nama || '-'}`,
     `No. HP/WA: ${hp || '-'}`,
     `Jumlah Orang: ${jumlah || '-'}`,
+    `Tanggal Perjalanan: ${formatTanggal(tanggal) || '-'}`,
     `Catatan: ${catatan || '-'}`,
   ].join('\n');
   const waHref = waLink(pesan);
@@ -87,14 +129,44 @@ export function PackageDetailPage(): JSX.Element {
     (src, i, arr) => arr.indexOf(src) === i,
   );
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    if (!pkg) return;
+
+    setSubmitting(true);
+    setFormError(null);
+    setFieldErrors({});
+
+    try {
+      await apiPost<{ id: number }>('/bookings', {
+        packageId: pkg.id,
+        name: nama,
+        phone: hp,
+        people: Number(jumlah),
+        tripDate: tanggal,
+        notes: catatan || undefined,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setFormError(err.message);
+        if (err.fields) setFieldErrors(err.fields);
+      } else {
+        setFormError('Gagal mengirim pemesanan. Coba lagi beberapa saat lagi.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <>
-      <Seo title={`${pkg.title} — VisitCiremai`} description={pkg.description} />
+      <Seo
+        title={`${pkg.title} — VisitCiremai`}
+        description={pkg.description}
+        image={pkg.image}
+        type="product"
+      />
       <Navbar alwaysSolid />
       <main
         id="main-content"
@@ -169,14 +241,6 @@ export function PackageDetailPage(): JSX.Element {
                 </section>
               )}
 
-              {/* Itinerary */}
-              {pkg.itinerary && pkg.itinerary.length > 0 && (
-                <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
-                  <h2 className="text-lg font-bold text-ink">Itinerary</h2>
-                  <PackageItinerary steps={pkg.itinerary} />
-                </section>
-              )}
-
               {/* Notes */}
               <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm text-ink-2">
                 <p className="font-semibold text-ink">Catatan</p>
@@ -197,13 +261,19 @@ export function PackageDetailPage(): JSX.Element {
                       <CheckCircle2 aria-hidden="true" className="h-8 w-8 text-primary" />
                     </div>
                     <h2 className="mt-4 text-lg font-bold text-ink">
-                      Pesanan siap dikirim!
+                      Pemesanan tersimpan!
                     </h2>
                     <p className="mt-2 text-sm text-ink-2">
-                      Terima kasih, {nama || 'Kak'}. Klik tombol di bawah untuk
-                      mengirim detail pesanan ke WhatsApp tim VisitCiremai untuk
-                      konfirmasi.
+                      Terima kasih, {nama || 'Kak'}. Pesanan Anda sudah kami terima.
+                      Kirim juga detailnya lewat WhatsApp agar tim kami bisa segera
+                      mengonfirmasi.
                     </p>
+                    {formatTanggal(tanggal) && (
+                      <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary">
+                        <CalendarDays aria-hidden="true" className="h-4 w-4" />
+                        {formatTanggal(tanggal)}
+                      </p>
+                    )}
                     <Button
                       as="a"
                       href={waHref}
@@ -219,7 +289,7 @@ export function PackageDetailPage(): JSX.Element {
                       onClick={() => setSubmitted(false)}
                       className="mt-3 text-sm text-ink-2 underline-offset-2 hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
                     >
-                      Ubah data pesanan
+                      Buat pesanan lain
                     </button>
                   </div>
                 ) : (
@@ -232,7 +302,16 @@ export function PackageDetailPage(): JSX.Element {
                       Isi data di bawah, lalu kirim untuk konfirmasi ke tim kami.
                     </p>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    {formError && (
+                      <p
+                        role="alert"
+                        className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                      >
+                        {formError}
+                      </p>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                       <div>
                         <label htmlFor="nama" className="mb-1.5 block text-sm font-medium text-ink">
                           Nama Lengkap <span className="text-primary">*</span>
@@ -244,8 +323,11 @@ export function PackageDetailPage(): JSX.Element {
                           value={nama}
                           onChange={(e) => setNama(e.target.value)}
                           placeholder="Masukkan nama lengkap Anda"
-                          className={inputClass}
+                          aria-invalid={Boolean(fieldErrors.name)}
+                          aria-describedby={fieldErrors.name ? 'nama-error' : undefined}
+                          className={`${inputClass} ${fieldErrors.name ? inputErrorClass : ''}`}
                         />
+                        <FieldError id="nama-error" message={fieldErrors.name} />
                       </div>
 
                       <div>
@@ -259,8 +341,11 @@ export function PackageDetailPage(): JSX.Element {
                           value={hp}
                           onChange={(e) => setHp(e.target.value)}
                           placeholder="Contoh: 081234567890"
-                          className={inputClass}
+                          aria-invalid={Boolean(fieldErrors.phone)}
+                          aria-describedby={fieldErrors.phone ? 'hp-error' : undefined}
+                          className={`${inputClass} ${fieldErrors.phone ? inputErrorClass : ''}`}
                         />
+                        <FieldError id="hp-error" message={fieldErrors.phone} />
                       </div>
 
                       <div>
@@ -274,8 +359,47 @@ export function PackageDetailPage(): JSX.Element {
                           required
                           value={jumlah}
                           onChange={(e) => setJumlah(e.target.value)}
-                          className={inputClass}
+                          aria-invalid={Boolean(fieldErrors.people)}
+                          aria-describedby={fieldErrors.people ? 'jumlah-error' : undefined}
+                          className={`${inputClass} ${fieldErrors.people ? inputErrorClass : ''}`}
                         />
+                        <FieldError id="jumlah-error" message={fieldErrors.people} />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="tanggal"
+                          className="mb-1.5 block text-sm font-medium text-ink"
+                        >
+                          Tanggal Perjalanan <span className="text-primary">*</span>
+                        </label>
+                        <div className="relative">
+                          <CalendarDays
+                            aria-hidden="true"
+                            className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-2 max-sm:hidden"
+                          />
+                          <input
+                            id="tanggal"
+                            type="date"
+                            required
+                            min={minDate}
+                            value={tanggal}
+                            onChange={(e) => setTanggal(e.target.value)}
+                            aria-invalid={Boolean(fieldErrors.tripDate)}
+                            aria-describedby={
+                              fieldErrors.tripDate ? 'tanggal-error' : 'tanggal-help'
+                            }
+                            className={`${inputClass} sm:pr-11 ${fieldErrors.tripDate ? inputErrorClass : ''}`}
+                          />
+                        </div>
+                        {fieldErrors.tripDate ? (
+                          <FieldError id="tanggal-error" message={fieldErrors.tripDate} />
+                        ) : (
+                          <p id="tanggal-help" className="mt-1.5 text-xs text-ink-2">
+                            Pilih tanggal keberangkatan yang kamu inginkan. Ketersediaan
+                            dikonfirmasi tim kami.
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -288,13 +412,16 @@ export function PackageDetailPage(): JSX.Element {
                           value={catatan}
                           onChange={(e) => setCatatan(e.target.value)}
                           placeholder="Tambahkan catatan jika ada..."
-                          className={`${inputClass} resize-y`}
+                          aria-invalid={Boolean(fieldErrors.notes)}
+                          aria-describedby={fieldErrors.notes ? 'catatan-error' : undefined}
+                          className={`${inputClass} resize-y ${fieldErrors.notes ? inputErrorClass : ''}`}
                         />
+                        <FieldError id="catatan-error" message={fieldErrors.notes} />
                       </div>
 
-                      <Button type="submit" className="w-full">
+                      <Button type="submit" className="w-full" disabled={submitting}>
                         <Send aria-hidden="true" className="h-4 w-4" />
-                        Kirim Pemesanan
+                        {submitting ? 'Mengirim…' : 'Kirim Pemesanan'}
                       </Button>
                     </form>
                   </>
