@@ -31,6 +31,17 @@ export const packages: Package[] = [
       'Pick Up',
       'Penginapan',
     ],
+    // NOTE: gambar & itinerary di bawah masih contoh — ganti dengan data asli.
+    gallery: ['/img/placeholder.png', '/img/hero.png'],
+    itinerary: [
+      { time: '06:00', title: 'Meeting Point', desc: 'Berkumpul di basecamp Apuy dan registrasi peserta.' },
+      { time: '07:00', title: 'Persiapan & Briefing', desc: 'Cek perlengkapan, briefing keselamatan, dan pembagian logistik.' },
+      { time: '08:00', title: 'Mulai Pendakian', desc: 'Trekking menuju pos demi pos bersama guide.' },
+      { time: '12:00', title: 'Istirahat Siang', desc: 'Makan siang dan istirahat di pos pertengahan.' },
+      { time: '15:00', title: 'Tiba di Camp', desc: 'Mendirikan tenda, makan malam, dan istirahat.' },
+      { time: '03:00', title: 'Summit Attack', desc: 'Perjalanan menuju puncak untuk menikmati sunrise.' },
+      { time: '10:00', title: 'Turun & Kembali', desc: 'Packing dan perjalanan turun menuju basecamp.' },
+    ],
   },
   {
     id: 'privat-trip-camp-bushcraft',

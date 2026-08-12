@@ -5,6 +5,12 @@ export type Category =
   | 'Transportasi'
   | 'Sewa Alat';
 
+export type ItineraryStep = {
+  time: string;   // e.g. '06:00'
+  title: string;
+  desc?: string;
+};
+
 export type Package = {
   id: string;
   title: string;
@@ -16,4 +22,6 @@ export type Package = {
   image: string;        // '/img/placeholder.jpg' for now
   description: string;  // 1-2 sentences, Indonesian, friendly
   includes?: string[];
+  gallery?: string[];   // extra photos; main image is shown first
+  itinerary?: ItineraryStep[];
 };
