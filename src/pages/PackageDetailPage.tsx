@@ -17,10 +17,12 @@ import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { Container } from '../components/layout/Container';
 import { Button } from '../components/ui/Button';
+import { Seo } from '../components/Seo';
+import { PackageGallery } from '../components/package/PackageGallery';
+import { PackageItinerary } from '../components/package/PackageItinerary';
 import { packages } from '../data/packages';
 import { formatRupiah } from '../lib/format';
-
-const WHATSAPP_NUMBER = '6285520752899'; // matches the footer contact number
+import { waLink } from '../lib/whatsapp';
 
 const inputClass =
   'w-full rounded-lg border border-line bg-surface px-4 py-2.5 text-ink placeholder:text-ink-2/60 outline-none transition-colors focus:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
@@ -43,8 +45,13 @@ export function PackageDetailPage(): JSX.Element {
   if (!pkg) {
     return (
       <>
+        <Seo title="Paket tidak ditemukan — VisitCiremai" noindex />
         <Navbar alwaysSolid />
-        <main className="min-h-screen bg-bg pt-16">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="min-h-screen bg-bg pt-16 outline-none"
+        >
           <Container className="py-24 text-center">
             <h1 className="text-2xl font-bold text-ink">Paket tidak ditemukan</h1>
             <p className="mx-auto mt-3 max-w-md text-ink-2">
@@ -75,7 +82,10 @@ export function PackageDetailPage(): JSX.Element {
     `Jumlah Orang: ${jumlah || '-'}`,
     `Catatan: ${catatan || '-'}`,
   ].join('\n');
-  const waHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(pesan)}`;
+  const waHref = waLink(pesan);
+  const images = [pkg.image, ...(pkg.gallery ?? [])].filter(
+    (src, i, arr) => arr.indexOf(src) === i,
+  );
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -84,9 +94,14 @@ export function PackageDetailPage(): JSX.Element {
 
   return (
     <>
+      <Seo title={`${pkg.title} — VisitCiremai`} description={pkg.description} />
       <Navbar alwaysSolid />
-      <main className="min-h-screen bg-bg pt-16">
-        <Container className="py-8 sm:py-12">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="min-h-screen bg-bg pt-16 outline-none"
+      >
+        <Container className="py-8 sm:py-12 max-lg:pb-28">
           {/* Breadcrumb */}
           <nav
             aria-label="Breadcrumb"
@@ -110,13 +125,7 @@ export function PackageDetailPage(): JSX.Element {
           <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:items-start">
             {/* Left: package details */}
             <div className="space-y-6">
-              <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
-                <img
-                  src={pkg.image}
-                  alt={pkg.title}
-                  className="max-h-[560px] w-full object-cover"
-                />
-              </div>
+              <PackageGallery images={images} alt={pkg.title} />
 
               {/* Meta chips */}
               <div className="flex flex-wrap gap-3">
@@ -160,6 +169,14 @@ export function PackageDetailPage(): JSX.Element {
                 </section>
               )}
 
+              {/* Itinerary */}
+              {pkg.itinerary && pkg.itinerary.length > 0 && (
+                <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+                  <h2 className="text-lg font-bold text-ink">Itinerary</h2>
+                  <PackageItinerary steps={pkg.itinerary} />
+                </section>
+              )}
+
               {/* Notes */}
               <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm text-ink-2">
                 <p className="font-semibold text-ink">Catatan</p>
@@ -172,7 +189,7 @@ export function PackageDetailPage(): JSX.Element {
             </div>
 
             {/* Right: booking form */}
-            <aside className="lg:sticky lg:top-24">
+            <aside id="form-pemesanan" className="scroll-mt-24 lg:sticky lg:top-24">
               <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
                 {submitted ? (
                   <div className="text-center">
@@ -286,6 +303,28 @@ export function PackageDetailPage(): JSX.Element {
             </aside>
           </div>
         </Container>
+
+        {/* Sticky booking CTA — mobile only */}
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 p-3 backdrop-blur lg:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <div className="leading-tight">
+              <p className="text-xs text-ink-2">Mulai dari</p>
+              <p className="font-bold text-ink">
+                {formatRupiah(pkg.price)}
+                <span className="text-xs font-normal text-ink-2"> / {pkg.priceUnit}</span>
+              </p>
+            </div>
+            <Button
+              onClick={() =>
+                document
+                  .getElementById('form-pemesanan')
+                  ?.scrollIntoView({ behavior: 'smooth' })
+              }
+            >
+              Pesan Sekarang
+            </Button>
+          </div>
+        </div>
       </main>
       <Footer />
     </>

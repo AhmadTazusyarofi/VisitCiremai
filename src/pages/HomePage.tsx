@@ -1,9 +1,13 @@
 import type { JSX } from 'react';
+import { Seo } from '../components/Seo';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { Container } from '../components/layout/Container';
 import { HeroSection } from '../components/hero/HeroSection';
 import { CategorySection } from '../components/package/CategorySection';
+import { WhyVisitCiremai } from '../components/sections/WhyVisitCiremai';
+import { Testimonials } from '../components/sections/Testimonials';
+import { CTASection } from '../components/sections/CTASection';
 import { packages } from '../data/packages';
 import type { Category } from '../types/package';
 
@@ -18,8 +22,12 @@ const CATEGORY_ORDER: { title: Category; id: string }[] = [
 export function HomePage(): JSX.Element {
   return (
     <>
+      <Seo
+        title="VisitCiremai — Paket Wisata & Pendakian Gunung Ciremai"
+        description="Jelajahi paket pendakian, petualangan, akomodasi, transportasi, dan sewa alat outdoor di kawasan Gunung Ciremai bersama VisitCiremai."
+      />
       <Navbar />
-      <main>
+      <main id="main-content" tabIndex={-1} className="outline-none">
         <HeroSection />
 
         <section id="tentang" className="py-12 sm:py-16">
@@ -43,6 +51,10 @@ export function HomePage(): JSX.Element {
             </Container>
           ))}
         </div>
+
+        <WhyVisitCiremai />
+        <Testimonials />
+        <CTASection />
       </main>
       <Footer />
     </>
