@@ -11,7 +11,15 @@ export type PackageDto = {
   description: string;
   includes?: string[];
   gallery?: string[];
+  notes?: string[];
 };
+
+/** Butir catatan bawaan untuk paket baru — aturan bisnis yang berlaku umum. */
+export const DEFAULT_PACKAGE_NOTES = [
+  'Itinerary lengkap akan dibagikan sesuai kebutuhan operasional perjalanan.',
+  'Tim kami terbuka untuk pertanyaan seputar paket ini.',
+  'Harga dapat menyesuaikan sesuai permintaan dan jumlah peserta.',
+];
 
 /** Baris tabel `packages` apa adanya (snake_case). */
 export type PackageRow = {

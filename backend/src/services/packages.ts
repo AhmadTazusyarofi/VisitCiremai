@@ -64,7 +64,22 @@ export async function getPackage(id: string): Promise<PackageDto | null> {
   );
   if (!row) return null;
 
-  const [includes, gallery] = await Promise.all([
+  const { includes, gallery, notes } = await getChildren(id);
+
+  const dto = toDto(row);
+  if (includes.length > 0) dto.includes = includes;
+  if (gallery.length > 0) dto.gallery = gallery;
+  if (notes.length > 0) dto.notes = notes;
+  return dto;
+}
+
+/** Daftar turunan sebuah paket: includes, galeri, dan catatan. */
+async function getChildren(id: string): Promise<{
+  includes: string[];
+  gallery: string[];
+  notes: string[];
+}> {
+  const [includes, gallery, notes] = await Promise.all([
     query<{ label: string }>(
       'SELECT label FROM package_includes WHERE package_id = ? ORDER BY sort_order ASC, id ASC',
       [id],
@@ -73,12 +88,17 @@ export async function getPackage(id: string): Promise<PackageDto | null> {
       'SELECT image FROM package_gallery WHERE package_id = ? ORDER BY sort_order ASC, id ASC',
       [id],
     ),
+    query<{ label: string }>(
+      'SELECT label FROM package_notes WHERE package_id = ? ORDER BY sort_order ASC, id ASC',
+      [id],
+    ),
   ]);
 
-  const dto = toDto(row);
-  if (includes.length > 0) dto.includes = includes.map((i) => i.label);
-  if (gallery.length > 0) dto.gallery = gallery.map((g) => g.image);
-  return dto;
+  return {
+    includes: includes.map((i) => i.label),
+    gallery: gallery.map((g) => g.image),
+    notes: notes.map((n) => n.label),
+  };
 }
 
 /** Dipakai saat membuat booking: ambil judul & harga untuk disimpan sebagai snapshot. */
@@ -118,21 +138,13 @@ export async function getPackageForAdmin(id: string): Promise<AdminPackage | nul
   );
   if (!row) return null;
 
-  const [includes, gallery] = await Promise.all([
-    query<{ label: string }>(
-      'SELECT label FROM package_includes WHERE package_id = ? ORDER BY sort_order ASC, id ASC',
-      [id],
-    ),
-    query<{ image: string }>(
-      'SELECT image FROM package_gallery WHERE package_id = ? ORDER BY sort_order ASC, id ASC',
-      [id],
-    ),
-  ]);
+  const { includes, gallery, notes } = await getChildren(id);
 
   return {
     ...toDto(row),
-    includes: includes.map((i) => i.label),
-    gallery: gallery.map((g) => g.image),
+    includes,
+    gallery,
+    notes,
     isPublished: Boolean(row.is_published),
     sortOrder: Number(row.sort_order),
   };
@@ -152,15 +164,17 @@ export type PackageInput = {
   sortOrder: number;
   includes: string[];
   gallery: string[];
+  notes: string[];
 };
 
-/** Menulis ulang daftar includes & gallery milik sebuah paket. */
+/** Menulis ulang daftar includes, galeri, dan catatan milik sebuah paket. */
 async function replaceChildren(
   conn: Parameters<Parameters<typeof transaction>[0]>[0],
   input: PackageInput,
 ): Promise<void> {
   await conn.execute('DELETE FROM package_includes WHERE package_id = ?', [input.id]);
   await conn.execute('DELETE FROM package_gallery WHERE package_id = ?', [input.id]);
+  await conn.execute('DELETE FROM package_notes WHERE package_id = ?', [input.id]);
 
   for (const [i, label] of input.includes.entries()) {
     await conn.execute(
@@ -172,6 +186,12 @@ async function replaceChildren(
     await conn.execute(
       'INSERT INTO package_gallery (package_id, image, sort_order) VALUES (?, ?, ?)',
       [input.id, image, i * 10],
+    );
+  }
+  for (const [i, label] of input.notes.entries()) {
+    await conn.execute(
+      'INSERT INTO package_notes (package_id, label, sort_order) VALUES (?, ?, ?)',
+      [input.id, label, i * 10],
     );
   }
 }

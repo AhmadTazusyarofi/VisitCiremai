@@ -57,6 +57,18 @@ CREATE TABLE IF NOT EXISTS `package_gallery` (
     REFERENCES `packages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Butir "Catatan" pada halaman detail paket
+CREATE TABLE IF NOT EXISTS `package_notes` (
+  `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `package_id` VARCHAR(120) NOT NULL,
+  `label`      VARCHAR(300) NOT NULL,
+  `sort_order` INT          NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_notes_package` (`package_id`, `sort_order`),
+  CONSTRAINT `fk_notes_package` FOREIGN KEY (`package_id`)
+    REFERENCES `packages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- -------------------------------------------------------------
 --  Pemesanan
 --  package_title & package_price disimpan sebagai salinan (snapshot)

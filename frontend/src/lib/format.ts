@@ -6,6 +6,22 @@ export function formatRupiah(n: number): string {
   return (negative ? '-Rp' : 'Rp') + withDots
 }
 
+/**
+ * Menyisipkan titik ribuan pada isian angka: '2200000' -> '2.200.000'.
+ * Karakter selain digit dibuang, jadi aman dipakai langsung pada onChange.
+ */
+export function formatThousands(input: string): string {
+  const digits = input.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+  if (!digits) return ''
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}
+
+/** Kebalikan formatThousands: '2.200.000' -> 2200000. */
+export function parseThousands(input: string): number {
+  const digits = input.replace(/\D/g, '')
+  return digits ? Number(digits) : 0
+}
+
 const BULAN = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',

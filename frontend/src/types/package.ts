@@ -17,4 +17,5 @@ export type Package = {
   description: string;  // 1-2 sentences, Indonesian, friendly
   includes?: string[];
   gallery?: string[];   // extra photos; main image is shown first
+  notes?: string[];     // butir "Catatan" di halaman detail
 };

@@ -10,6 +10,7 @@ import bcrypt from 'bcryptjs';
 import { pool, queryOne, transaction } from './db.js';
 import { env } from './env.js';
 import { seedPackages } from './seed-data.js';
+import { DEFAULT_PACKAGE_NOTES } from './types.js';
 
 async function seed(): Promise<void> {
   await transaction(async (conn) => {
@@ -49,6 +50,14 @@ async function seed(): Promise<void> {
       // Tulis ulang daftar turunan agar hasil seed selalu sama persis.
       await conn.execute('DELETE FROM package_includes WHERE package_id = ?', [pkg.id]);
       await conn.execute('DELETE FROM package_gallery WHERE package_id = ?', [pkg.id]);
+      await conn.execute('DELETE FROM package_notes WHERE package_id = ?', [pkg.id]);
+
+      for (const [i, label] of (pkg.notes ?? DEFAULT_PACKAGE_NOTES).entries()) {
+        await conn.execute(
+          'INSERT INTO package_notes (package_id, label, sort_order) VALUES (?, ?, ?)',
+          [pkg.id, label, i * 10],
+        );
+      }
 
       for (const [i, label] of (pkg.includes ?? []).entries()) {
         await conn.execute(

@@ -25,7 +25,14 @@ const slugSchema = z
 const bodySchema = z.object({
   title: z.string().trim().min(3, 'Judul minimal 3 karakter.').max(200),
   category: z.enum(CATEGORIES, { message: 'Kategori tidak dikenal.' }),
-  location: z.string().trim().max(120).optional(),
+  // nullish: klien yang mengirim balik hasil GET boleh memakai null untuk
+  // paket tanpa lokasi, sama artinya dengan tidak mengirim field ini.
+  location: z
+    .string()
+    .trim()
+    .max(120)
+    .nullish()
+    .transform((v) => v || undefined),
   price: z.coerce
     .number()
     .int('Harga harus bilangan bulat.')
@@ -38,6 +45,7 @@ const bodySchema = z.object({
   sortOrder: z.coerce.number().int().default(0),
   includes: z.array(z.string().trim().min(1).max(160)).max(60).default([]),
   gallery: z.array(z.string().trim().min(1).max(255)).max(20).default([]),
+  notes: z.array(z.string().trim().min(1).max(300)).max(20).default([]),
 });
 
 const createSchema = bodySchema.extend({ id: slugSchema });

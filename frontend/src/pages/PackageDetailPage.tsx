@@ -241,15 +241,17 @@ export function PackageDetailPage(): JSX.Element {
                 </section>
               )}
 
-              {/* Notes */}
-              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm text-ink-2">
-                <p className="font-semibold text-ink">Catatan</p>
-                <ul className="mt-2 space-y-1">
-                  <li>• Itinerary lengkap akan dibagikan sesuai kebutuhan operasional perjalanan.</li>
-                  <li>• Tim kami terbuka untuk pertanyaan seputar paket ini.</li>
-                  <li>• Harga dapat menyesuaikan sesuai permintaan dan jumlah peserta.</li>
-                </ul>
-              </div>
+              {/* Notes — diisi per paket lewat halaman admin */}
+              {pkg.notes && pkg.notes.length > 0 && (
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm text-ink-2">
+                  <p className="font-semibold text-ink">Catatan</p>
+                  <ul className="mt-2 space-y-1">
+                    {pkg.notes.map((note) => (
+                      <li key={note}>• {note}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Right: booking form */}

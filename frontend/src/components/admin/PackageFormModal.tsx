@@ -4,6 +4,7 @@ import { ImageUp, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { ApiError, apiPost, apiPut, apiUpload } from '../../lib/api';
+import { formatThousands, parseThousands } from '../../lib/format';
 import type { Category } from '../../types/package';
 
 const CATEGORIES: Category[] = [
@@ -26,6 +27,7 @@ export type AdminPackage = {
   description: string;
   includes?: string[];
   gallery?: string[];
+  notes?: string[];
   isPublished: boolean;
   sortOrder: number;
 };
@@ -34,6 +36,13 @@ const field =
   'w-full rounded-lg border border-line bg-surface px-4 py-2.5 text-ink placeholder:text-ink-2/60 outline-none transition-colors focus:border-primary focus-visible:ring-2 focus-visible:ring-primary/30';
 
 const labelClass = 'mb-1.5 block text-sm font-medium text-ink';
+
+/** Catatan bawaan untuk paket baru — aturan bisnis yang berlaku umum. */
+const DEFAULT_NOTES = [
+  'Itinerary lengkap akan dibagikan sesuai kebutuhan operasional perjalanan.',
+  'Tim kami terbuka untuk pertanyaan seputar paket ini.',
+  'Harga dapat menyesuaikan sesuai permintaan dan jumlah peserta.',
+];
 
 /** Mengubah judul menjadi slug URL: huruf kecil, tanpa simbol. */
 function slugify(text: string): string {
@@ -49,6 +58,86 @@ function slugify(text: string): string {
 function Err({ message }: { message?: string }): JSX.Element | null {
   if (!message) return null;
   return <p className="mt-1.5 text-sm text-red-700">{message}</p>;
+}
+
+/**
+ * Editor daftar teks sederhana — dipakai untuk "Yang Termasuk" dan "Catatan".
+ * Enter menambah item, bukan mengirim seluruh form.
+ */
+function ListEditor({
+  id,
+  label,
+  hint,
+  placeholder,
+  items,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  hint?: string;
+  placeholder: string;
+  items: string[];
+  onChange: (next: string[]) => void;
+}): JSX.Element {
+  const [draft, setDraft] = useState('');
+
+  function add() {
+    const value = draft.trim();
+    if (!value) return;
+    onChange([...items, value]);
+    setDraft('');
+  }
+
+  return (
+    <div>
+      <span className={labelClass}>{label}</span>
+      {hint && <p className="-mt-1 mb-2 text-xs text-ink-2">{hint}</p>}
+
+      {items.length > 0 && (
+        <ul className="mb-3 space-y-2">
+          {items.map((item, i) => (
+            <li key={`${item}-${i}`} className="flex items-start gap-2">
+              <span className="flex-1 rounded-lg bg-bg px-3 py-2 text-sm text-ink">
+                {item}
+              </span>
+              <button
+                type="button"
+                aria-label={`Hapus ${item}`}
+                onClick={() => onChange(items.filter((_, j) => j !== i))}
+                className="rounded-full p-2 text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+              >
+                <Trash2 aria-hidden="true" className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex gap-2">
+        <label htmlFor={id} className="sr-only">
+          {label} — item baru
+        </label>
+        <input
+          id={id}
+          type="text"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              add();
+            }
+          }}
+          placeholder={placeholder}
+          className={field}
+        />
+        <Button variant="ghost" className="shrink-0" onClick={add}>
+          <Plus aria-hidden="true" className="h-4 w-4" />
+          Tambah
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export function PackageFormModal({
@@ -70,17 +159,19 @@ export function PackageFormModal({
   const [title, setTitle] = useState(initial?.title ?? '');
   const [category, setCategory] = useState(initial?.category ?? CATEGORIES[0]);
   const [location, setLocation] = useState(initial?.location ?? '');
-  const [price, setPrice] = useState(String(initial?.price ?? ''));
+  // Disimpan sebagai teks berformat ribuan ('2.200.000'); diubah ke angka
+  // hanya saat dikirim ke server.
+  const [price, setPrice] = useState(formatThousands(String(initial?.price ?? '')));
   const [priceUnit, setPriceUnit] = useState(initial?.priceUnit ?? 'Orang');
   const [duration, setDuration] = useState(initial?.duration ?? '');
   const [image, setImage] = useState(initial?.image ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [includes, setIncludes] = useState<string[]>(initial?.includes ?? []);
   const [gallery, setGallery] = useState<string[]>(initial?.gallery ?? []);
+  const [notes, setNotes] = useState<string[]>(initial?.notes ?? DEFAULT_NOTES);
   const [isPublished, setIsPublished] = useState(initial?.isPublished ?? true);
   const [sortOrder, setSortOrder] = useState(String(initial?.sortOrder ?? 0));
 
-  const [newInclude, setNewInclude] = useState('');
   const [uploading, setUploading] = useState<'image' | 'gallery' | null>(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -118,7 +209,7 @@ export function PackageFormModal({
       title,
       category,
       location: location.trim() || undefined,
-      price: Number(price),
+      price: parseThousands(price),
       priceUnit,
       duration,
       image,
@@ -127,6 +218,7 @@ export function PackageFormModal({
       sortOrder: Number(sortOrder) || 0,
       includes,
       gallery,
+      notes,
     };
 
     try {
@@ -241,17 +333,29 @@ export function PackageFormModal({
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="sm:col-span-2">
             <label htmlFor="pf-price" className={labelClass}>
-              Harga (Rp) <span className="text-primary">*</span>
+              Harga <span className="text-primary">*</span>
             </label>
-            <input
-              id="pf-price"
-              type="number"
-              min={0}
-              required
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className={field}
-            />
+            <div className="relative">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-2"
+              >
+                Rp
+              </span>
+              {/* type="text" + inputMode numeric: input number tidak bisa
+                  menampilkan titik ribuan, tapi papan ketik ponsel tetap angka. */}
+              <input
+                id="pf-price"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                required
+                value={price}
+                onChange={(e) => setPrice(formatThousands(e.target.value))}
+                placeholder="0"
+                className={`${field} pl-10`}
+              />
+            </div>
             <Err message={fieldErrors.price} />
           </div>
           <div>
@@ -389,67 +493,22 @@ export function PackageFormModal({
           />
         </div>
 
-        {/* Yang termasuk */}
-        <div>
-          <span className={labelClass}>Yang termasuk</span>
-          {includes.length > 0 && (
-            <ul className="mb-3 space-y-2">
-              {includes.map((item, i) => (
-                <li key={`${item}-${i}`} className="flex items-center gap-2">
-                  <span className="flex-1 rounded-lg bg-bg px-3 py-2 text-sm text-ink">
-                    {item}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`Hapus ${item}`}
-                    onClick={() => setIncludes((list) => list.filter((_, j) => j !== i))}
-                    className="rounded-full p-2 text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
-                  >
-                    <Trash2 aria-hidden="true" className="h-4 w-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="flex gap-2">
-            <label htmlFor="pf-include" className="sr-only">
-              Item baru
-            </label>
-            <input
-              id="pf-include"
-              type="text"
-              value={newInclude}
-              onChange={(e) => setNewInclude(e.target.value)}
-              onKeyDown={(e) => {
-                // Enter menambah item, bukan mengirim seluruh form.
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  const v = newInclude.trim();
-                  if (v) {
-                    setIncludes((list) => [...list, v]);
-                    setNewInclude('');
-                  }
-                }
-              }}
-              placeholder="Contoh: Guide bersertifikat"
-              className={field}
-            />
-            <Button
-              variant="ghost"
-              className="shrink-0"
-              onClick={() => {
-                const v = newInclude.trim();
-                if (v) {
-                  setIncludes((list) => [...list, v]);
-                  setNewInclude('');
-                }
-              }}
-            >
-              <Plus aria-hidden="true" className="h-4 w-4" />
-              Tambah
-            </Button>
-          </div>
-        </div>
+        <ListEditor
+          id="pf-include"
+          label="Yang termasuk"
+          placeholder="Contoh: Guide bersertifikat"
+          items={includes}
+          onChange={setIncludes}
+        />
+
+        <ListEditor
+          id="pf-note"
+          label="Catatan"
+          hint="Tampil sebagai kotak Catatan di bawah halaman detail paket."
+          placeholder="Contoh: Harga dapat menyesuaikan jumlah peserta."
+          items={notes}
+          onChange={setNotes}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
