@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import type { Category } from "../../types/package";
 import { LiquidGlass } from "../ui/LiquidGlass";
@@ -13,12 +14,16 @@ const categories: Category[] = [
 ];
 
 export function GlassSearchBar(): JSX.Element {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string>("Petualangan Lainnya");
+  const [category, setCategory] = useState<string>("");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // No backend/navigation yet — a later integration can wire this up.
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("q", query.trim());
+    if (category) params.set("kategori", category);
+    navigate(`/cari?${params.toString()}`);
   }
 
   return (
@@ -57,6 +62,9 @@ export function GlassSearchBar(): JSX.Element {
           onChange={(e) => setCategory(e.target.value)}
           className="h-12 w-full min-w-0 cursor-pointer rounded-full bg-transparent px-5 text-white outline-none"
         >
+          <option value="" className="text-ink">
+            Semua Kategori
+          </option>
           {categories.map((c) => (
             <option key={c} value={c} className="text-ink">
               {c}
