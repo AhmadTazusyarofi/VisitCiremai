@@ -6,10 +6,11 @@ import { Modal } from "../ui/Modal";
 import { TestimonialForm } from "../sections/TestimonialForm";
 
 const layanan = [
-  { label: "Pendakian", href: "#paket" },
-  { label: "Akomodasi", href: "#akomodasi" },
-  { label: "Transportasi", href: "#transportasi" },
-  { label: "Sewa Alat", href: "#sewa-alat" },
+  { label: "Pendakian", href: "/#paket" },
+  { label: "Akomodasi", href: "/#akomodasi" },
+  { label: "Transportasi", href: "/#transportasi" },
+  { label: "Sewa Alat", href: "/#sewa-alat" },
+  { label: "Tentang Kami", href: "/tentang" },
 ];
 
 const socials = [

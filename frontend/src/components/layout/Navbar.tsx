@@ -6,8 +6,8 @@ import { Button } from '../ui/Button';
 
 const links = [
   { label: 'Beranda', href: '/#beranda' },
-  { label: 'Tentang', href: '/#tentang' },
   { label: 'Paket', href: '/#paket' },
+  { label: 'Tentang Kami', href: '/tentang' },
   { label: 'Kontak', href: '/#kontak' },
 ];
 
