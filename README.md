@@ -3,13 +3,18 @@
 Platform wisata dan perjalanan untuk kawasan Gunung Ciremai — paket pendakian, petualangan,
 akomodasi, transportasi, dan sewa alat outdoor.
 
-Repo ini adalah **npm workspaces** dengan dua paket:
+Repo ini berisi dua proyek yang berdiri sendiri:
 
 ```
 visit-ciremai/
+├── package.json  hanya berisi script — root TIDAK punya node_modules
+├── scripts/      dev.mjs, menjalankan kedua server sekaligus
 ├── frontend/     React 19 + TypeScript + Vite 8 + Tailwind CSS v4
 └── backend/      Express 5 + TypeScript + MySQL (mysql2)
 ```
+
+`frontend/` dan `backend/` masing-masing punya `package.json`, `package-lock.json`,
+dan `node_modules` sendiri, sehingga tidak ada dependensi yang menumpuk di root.
 
 ## Prasyarat
 
@@ -19,8 +24,8 @@ visit-ciremai/
 ## Setup pertama kali
 
 ```bash
-# 1. Install semua dependensi (satu kali, dari root)
-npm install
+# 1. Install dependensi frontend dan backend sekaligus (dari root)
+npm run install:all
 
 # 2. Siapkan konfigurasi (dua-duanya wajib)
 cp backend/.env.example backend/.env      # Windows: copy backend\.env.example backend\.env
@@ -43,13 +48,18 @@ Semua perintah dijalankan dari **root repo**.
 
 | Perintah | Keterangan |
 | --- | --- |
-| `npm run dev` | Frontend (:5173) **dan** API (:4000) sekaligus |
+| `npm run install:all` | Install dependensi frontend + backend |
+| `npm run dev` | Frontend (:5173) **dan** API (:4000) sekaligus, output berlabel `[web]`/`[api]` |
 | `npm run dev:web` | Frontend saja |
 | `npm run dev:api` | API saja |
-| `npm run build` | Build produksi kedua workspace |
+| `npm run build` | Build produksi keduanya |
 | `npm run seed` | Mengisi database dengan data awal (aman diulang) |
 | `npm test` | Unit test frontend (Vitest) |
-| `npm run lint` | Oxlint untuk seluruh repo |
+| `npm run lint` | Oxlint untuk frontend dan backend |
+
+Script di root hanya meneruskan perintah ke folder yang bersangkutan lewat
+`npm run <script> --prefix <folder>`, jadi Anda juga bisa masuk ke `frontend/` atau
+`backend/` lalu menjalankan `npm run dev` langsung di sana.
 
 Saat dev, permintaan ke `/api` dan `/uploads` dari frontend diteruskan ke backend
 lewat proxy Vite (`VITE_API_PROXY_TARGET`), sehingga keduanya berbagi origin yang sama.
