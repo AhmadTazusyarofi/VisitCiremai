@@ -1,0 +1,19 @@
+# SPA fallback for client-side routing (react-router).
+# Serves index.html for any path that is not a real file/folder so that
+# direct URLs like /paket/xxx, /cari, or unknown routes load the app.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # If deploying under a subfolder (e.g. http://localhost/visit-ciremai/),
+  # set this to that folder, and also set Vite `base` accordingly:
+  #   RewriteBase /visit-ciremai/
+  RewriteBase /
+
+  # Don't rewrite requests for existing files or directories (assets, images).
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Everything else -> index.html (the SPA entry point).
+  RewriteRule ^ index.html [L]
+</IfModule>
