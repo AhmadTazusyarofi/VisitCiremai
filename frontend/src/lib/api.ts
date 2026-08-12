@@ -1,11 +1,12 @@
+import { API_URL } from './config';
+
 /**
  * Pembungkus tipis di atas fetch untuk berbicara dengan API VisitCiremai.
  *
- * Saat dev, `/api` diteruskan ke http://localhost:4000 lewat proxy Vite
- * (lihat vite.config.ts). Di produksi, setel VITE_API_URL bila API berada
- * pada domain yang berbeda.
+ * Alamatnya diatur lewat VITE_API_URL di frontend/.env. Saat dev, nilai
+ * bawaan `/api` diteruskan ke backend lewat proxy Vite (lihat vite.config.ts).
  */
-const BASE = import.meta.env.VITE_API_URL ?? '/api';
+const BASE = API_URL;
 
 /** Error dari API, membawa pesan per-field bila ada. */
 export class ApiError extends Error {

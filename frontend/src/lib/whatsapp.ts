@@ -1,5 +1,6 @@
-// Central WhatsApp contact used by the floating button and the booking form.
-export const WHATSAPP_NUMBER = '6285520752899';
+import { WHATSAPP_NUMBER } from './config';
+
+export { WHATSAPP_NUMBER };
 
 /** Build a wa.me link with a pre-filled, URL-encoded message. */
 export function waLink(text: string): string {

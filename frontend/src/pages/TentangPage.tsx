@@ -18,25 +18,31 @@ import { LocationMap, MAP_LINK } from '../components/ui/LocationMap';
 import { WhyVisitCiremai } from '../components/sections/WhyVisitCiremai';
 import { CTASection } from '../components/sections/CTASection';
 import { usePackages } from '../hooks/usePackages';
+import {
+  CONTACT_ADDRESS,
+  CONTACT_EMAIL,
+  CONTACT_PHONE,
+  CONTACT_PHONE_HREF,
+} from '../lib/config';
 import { waLink } from '../lib/whatsapp';
 
 const contacts = [
   {
     icon: Phone,
     label: 'Telepon / WhatsApp',
-    value: '+62 855-2075-2899',
-    href: 'tel:+6285520752899',
+    value: CONTACT_PHONE,
+    href: CONTACT_PHONE_HREF,
   },
   {
     icon: Mail,
     label: 'Email',
-    value: 'jessa@visitciremai.com',
-    href: 'mailto:jessa@visitciremai.com',
+    value: CONTACT_EMAIL,
+    href: `mailto:${CONTACT_EMAIL}`,
   },
   {
     icon: MapPin,
     label: 'Alamat',
-    value: 'Kaki Gunung Ciremai, Majalengka — Jawa Barat',
+    value: CONTACT_ADDRESS,
     href: MAP_LINK,
     external: true,
   },

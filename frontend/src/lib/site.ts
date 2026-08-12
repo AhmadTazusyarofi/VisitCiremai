@@ -1,14 +1,6 @@
-/** Identitas situs untuk metadata (Open Graph, canonical, dsb). */
-export const SITE_NAME = 'VisitCiremai';
+import { SITE_URL } from './config';
 
-/**
- * Domain produksi. Ganti bila domain berubah — nilai ini dipakai untuk
- * membentuk URL absolut pada tag Open Graph & canonical.
- */
-export const SITE_URL = 'https://visitciremai.com';
-
-/** Gambar default saat halaman dibagikan ke WhatsApp / Facebook / X. */
-export const SITE_OG_IMAGE = '/img/hero.png';
+export { SITE_NAME, SITE_URL, SITE_OG_IMAGE } from './config';
 
 /** Ubah path relatif menjadi URL absolut (dibutuhkan oleh Open Graph). */
 export function absoluteUrl(path: string): string {

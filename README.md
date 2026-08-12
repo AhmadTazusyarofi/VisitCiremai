@@ -22,8 +22,9 @@ visit-ciremai/
 # 1. Install semua dependensi (satu kali, dari root)
 npm install
 
-# 2. Siapkan konfigurasi backend
+# 2. Siapkan konfigurasi (dua-duanya wajib)
 cp backend/.env.example backend/.env      # Windows: copy backend\.env.example backend\.env
+cp frontend/.env.example frontend/.env    # Windows: copy frontend\.env.example frontend\.env
 #    lalu isi JWT_SECRET dengan string acak minimal 32 karakter:
 #    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
@@ -50,8 +51,26 @@ Semua perintah dijalankan dari **root repo**.
 | `npm test` | Unit test frontend (Vitest) |
 | `npm run lint` | Oxlint untuk seluruh repo |
 
-Saat dev, permintaan ke `/api` dan `/uploads` dari frontend diteruskan ke `localhost:4000`
-lewat proxy Vite, sehingga keduanya berbagi origin yang sama.
+Saat dev, permintaan ke `/api` dan `/uploads` dari frontend diteruskan ke backend
+lewat proxy Vite (`VITE_API_PROXY_TARGET`), sehingga keduanya berbagi origin yang sama.
+
+## Konfigurasi
+
+Tidak ada nilai konfigurasi yang ditulis di dalam kode — semuanya dibaca dari dua berkas
+`.env` yang tidak ikut ter-commit. Templatnya ada di `.env.example` masing-masing.
+
+| Berkas | Isi | Sifat |
+| --- | --- | --- |
+| `backend/.env` | kredensial MySQL, `JWT_SECRET`, `CORS_ORIGIN`, akun admin awal | **rahasia**, hanya di server |
+| `frontend/.env` | alamat API, domain situs, nomor WhatsApp, email, alamat, kata kunci peta | **publik** |
+
+> Variabel `VITE_*` ikut ter-bundle ke JavaScript yang dikirim ke browser, jadi tidak
+> boleh berisi rahasia. Password dan API key selalu tinggal di `backend/.env`.
+
+Di frontend, semua nilai itu dibaca lewat satu berkas `src/lib/config.ts`. Bila ada
+variabel wajib yang kosong, `npm run dev` dan `npm run build` **berhenti dengan pesan
+yang menyebutkan variabel mana** — supaya situs tidak terlanjur ter-deploy dengan nomor
+WhatsApp atau tautan yang kosong.
 
 ## API
 

@@ -1,7 +1,7 @@
 import type { JSX } from 'react';
+import { MAP_QUERY } from '../../lib/config';
 
-/** Titik lokasi yang ditampilkan pada peta. */
-export const MAP_QUERY = 'Gunung Ciremai, Majalengka, Jawa Barat';
+export { MAP_QUERY };
 
 /** Embed Google Maps tanpa API key. */
 const EMBED_SRC = `https://www.google.com/maps?q=${encodeURIComponent(

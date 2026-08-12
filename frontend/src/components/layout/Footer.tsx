@@ -2,6 +2,12 @@ import type { JSX } from "react";
 import { useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "./Container";
+import {
+  CONTACT_ADDRESS,
+  CONTACT_EMAIL,
+  CONTACT_PHONE,
+  CONTACT_PHONE_HREF,
+} from "../../lib/config";
 import { Modal } from "../ui/Modal";
 import { TestimonialForm } from "../sections/TestimonialForm";
 
@@ -93,25 +99,18 @@ export function Footer(): JSX.Element {
                   aria-hidden="true"
                   className="mt-0.5 h-4 w-4 shrink-0"
                 />
-                <span>
-                  Kaki Gunung Ciremai,
-                  <br />
-                  Majalengka - Jawa Barat
-                </span>
+                <span>{CONTACT_ADDRESS}</span>
               </li>
               <li>
-                <a href="tel:+6285520752899" className={contactLinkClass}>
+                <a href={CONTACT_PHONE_HREF} className={contactLinkClass}>
                   <Phone aria-hidden="true" className="h-4 w-4 shrink-0" />
-                  <span>+62 855-2075-2899</span>
+                  <span>{CONTACT_PHONE}</span>
                 </a>
               </li>
               <li>
-                <a
-                  href="mailto:jessa@visitciremai.com"
-                  className={contactLinkClass}
-                >
+                <a href={`mailto:${CONTACT_EMAIL}`} className={contactLinkClass}>
                   <Mail aria-hidden="true" className="h-4 w-4 shrink-0" />
-                  <span>jessa@visitciremai.com</span>
+                  <span>{CONTACT_EMAIL}</span>
                 </a>
               </li>
               <li className="pt-2">

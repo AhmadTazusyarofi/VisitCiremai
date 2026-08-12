@@ -7,14 +7,18 @@
     <meta name="description" content="Jelajahi paket pendakian, petualangan, akomodasi, transportasi, dan sewa alat outdoor di kawasan Gunung Ciremai bersama VisitCiremai." />
     <title>VisitCiremai — Paket Wisata & Pendakian Gunung Ciremai</title>
 
-    <!-- Open Graph default (crawler tanpa JS). Tiap halaman menimpanya lewat <Seo />. -->
-    <meta property="og:site_name" content="VisitCiremai" />
+    <!--
+      Open Graph default untuk crawler yang tidak menjalankan JS; tiap halaman
+      menimpanya lewat <Seo />. Nilai %VITE_*% diisi Vite dari frontend/.env
+      saat build.
+    -->
+    <meta property="og:site_name" content="%VITE_SITE_NAME%" />
     <meta property="og:locale" content="id_ID" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://visitciremai.com/" />
+    <meta property="og:url" content="%VITE_SITE_URL%/" />
     <meta property="og:title" content="VisitCiremai — Paket Wisata & Pendakian Gunung Ciremai" />
     <meta property="og:description" content="Jelajahi paket pendakian, petualangan, akomodasi, transportasi, dan sewa alat outdoor di kawasan Gunung Ciremai bersama VisitCiremai." />
-    <meta property="og:image" content="https://visitciremai.com/img/hero.png" />
+    <meta property="og:image" content="%VITE_SITE_URL%%VITE_OG_IMAGE%" />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
