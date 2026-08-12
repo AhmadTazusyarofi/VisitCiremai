@@ -8,7 +8,6 @@ Repo ini berisi dua proyek yang berdiri sendiri:
 ```
 visit-ciremai/
 ├── package.json  hanya berisi script — root TIDAK punya node_modules
-├── scripts/      dev.mjs, menjalankan kedua server sekaligus
 ├── frontend/     React 19 + TypeScript + Vite 8 + Tailwind CSS v4
 └── backend/      Express 5 + TypeScript + MySQL (mysql2)
 ```
@@ -46,12 +45,21 @@ npm run seed
 
 Semua perintah dijalankan dari **root repo**.
 
+Frontend dan backend dijalankan di **dua terminal terpisah**:
+
+```bash
+# Terminal 1 — frontend di http://localhost:5173
+npm run dev:web
+
+# Terminal 2 — API di http://localhost:4000
+npm run dev:api
+```
+
 | Perintah | Keterangan |
 | --- | --- |
 | `npm run install:all` | Install dependensi frontend + backend |
-| `npm run dev` | Frontend (:5173) **dan** API (:4000) sekaligus, output berlabel `[web]`/`[api]` |
-| `npm run dev:web` | Frontend saja |
-| `npm run dev:api` | API saja |
+| `npm run dev:web` | Dev server frontend (Vite) |
+| `npm run dev:api` | Dev server API (tsx watch) |
 | `npm run build` | Build produksi keduanya |
 | `npm run seed` | Mengisi database dengan data awal (aman diulang) |
 | `npm test` | Unit test frontend (Vitest) |
