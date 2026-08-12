@@ -7,13 +7,15 @@ type ButtonProps = {
   type?: 'button' | 'submit' | 'reset'
   target?: string
   rel?: string
+  disabled?: boolean
   children: ReactNode
 } & HTMLAttributes<HTMLElement>
 
 const base =
   'inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full ' +
   'transition-colors focus-visible:outline-none focus-visible:ring-2 ' +
-  'focus-visible:ring-primary focus-visible:ring-offset-2'
+  'focus-visible:ring-primary focus-visible:ring-offset-2 ' +
+  'disabled:cursor-not-allowed disabled:opacity-60'
 
 const variants = {
   primary: 'bg-primary text-white hover:bg-primary-dark',
@@ -27,6 +29,7 @@ export function Button({
   type = 'button',
   target,
   rel,
+  disabled,
   children,
   className = '',
   ...rest
@@ -42,7 +45,12 @@ export function Button({
   }
 
   return (
-    <button type={type} className={classes} {...(rest as HTMLAttributes<HTMLButtonElement>)}>
+    <button
+      type={type}
+      disabled={disabled}
+      className={classes}
+      {...(rest as HTMLAttributes<HTMLButtonElement>)}
+    >
       {children}
     </button>
   )
